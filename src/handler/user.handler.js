@@ -1,5 +1,17 @@
 const { getConnection } = require('typeorm');
+const Joi = require('joi');
 const User = require('../entitites/User');
+const { handleValidationFailure } = require('../utils/validation.response');
+
+const userSchema = Joi.object({
+  name: Joi.string().required().messages({
+    'any.required': 'Field name harus diisi',
+  }),
+  email: Joi.string().required().email().messages({
+    'any.required': 'Field email harus diisi',
+    'string.email': 'Field email harus berupa email',
+  }),
+});
 
 const UserIndex = async (request, h) => {
   try {
@@ -19,6 +31,14 @@ const UserIndex = async (request, h) => {
 };
 const userCreate = async (request, h) => {
   try {
+    console.log(request.payload);
+    const { error } = userSchema.validate(request.payload, {
+      abortEarly: false,
+    });
+    if (error) {
+      console.log(error);
+      return handleValidationFailure(request, h, error);
+    }
     const userRepository = getConnection().getRepository(User);
     const newUser = userRepository.create(request.payload);
     const savedUser = await userRepository.save(newUser);
@@ -28,12 +48,11 @@ const userCreate = async (request, h) => {
     };
     return h.response(response).code(200);
   } catch (error) {
-    return h.response(error).code(500);
+    return h.response(error.details).code(500);
   }
 };
 const userFindById = async (request, h) => {
   try {
-    // const { id } = request.params;
     const userRepository = getConnection().getRepository(User);
     const user = await userRepository.findOneBy({ id: request.params.id });
     const response = {
