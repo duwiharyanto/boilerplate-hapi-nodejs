@@ -4,7 +4,10 @@ const User = require('../entitites/User');
 const UserIndex = async (request, h) => {
   try {
     const userRepository = getConnection().getRepository(User);
-    const users = await userRepository.find();
+    const users = (await userRepository.find()).map((user) => {
+      const { id, ...userWithoutId } = user;
+      return userWithoutId;
+    });
     const response = {
       timespamp: Date.now(),
       data: users,
@@ -30,14 +33,21 @@ const userCreate = async (request, h) => {
 };
 const userFindById = async (request, h) => {
   try {
-    const { id } = request.params;
+    // const { id } = request.params;
     const userRepository = getConnection().getRepository(User);
-    const user = await userRepository.findOneBy({ id });
+    const user = await userRepository.findOneBy({ id: request.params.id });
     const response = {
       timespamp: Date.now(),
-      data: user,
+      message: 'User ditemukan',
+      data: null,
     };
-    return h.response(response).code(200);
+    if (user) {
+      const { id, ...userWithoutId } = user;
+      response.data = userWithoutId;
+      return h.response(response).code(200);
+    }
+    response.message = 'user tidak ditemukan';
+    return h.response(response).code(404);
   } catch (error) {
     console.log(error);
     return h.response(error).code(404);
