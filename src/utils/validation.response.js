@@ -8,4 +8,14 @@ const handleValidationFailure = (request, h, error) => {
 
   return h.response(response).code(response.statusCode);
 };
-module.exports = { handleValidationFailure };
+const handleException = (h, error) => {
+  const response = {
+    statusCode: 400,
+    error: 'Bad Request',
+    message: 'Sistem error',
+    details: error.message,
+  };
+
+  return h.response(response).code(response.statusCode);
+};
+module.exports = { handleValidationFailure, handleException };

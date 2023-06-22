@@ -1,6 +1,5 @@
 // database.js
 const { createConnection } = require('typeorm');
-const userEntity = require('../entitites/User');
 
 async function connect() {
   await createConnection({
@@ -10,11 +9,11 @@ async function connect() {
     username: 'root',
     password: '',
     database: 'hapi-boilerplate',
-    entities: [userEntity],
+    entities: [`${__dirname}/../**/*.entity.{js,ts}`],
+    softDelete: true,
     logging: false,
     synchronize: true, // Atur false jika tidak ingin sinkronisasi skema otomatis
   });
-
   console.log('Database connection successful');
 }
 

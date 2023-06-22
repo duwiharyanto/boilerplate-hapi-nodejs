@@ -1,11 +1,19 @@
-const { getConnection } = require('typeorm');
+const { getConnection, IsNull } = require('typeorm');
 const Joi = require('joi');
-const User = require('../entitites/User');
-const { handleValidationFailure } = require('../utils/validation.response');
+const bcrypt = require('bcrypt');
+const User = require('../entitites/user.entity');
+const {
+  handleValidationFailure,
+  handleException,
+} = require('../utils/validation.response');
 
+const saltRounds = 10;
 const userSchema = Joi.object({
   name: Joi.string().required().messages({
     'any.required': 'Field name harus diisi',
+  }),
+  password: Joi.string().required().messages({
+    'any.required': 'Field password harus diisi',
   }),
   email: Joi.string().required().email().messages({
     'any.required': 'Field email harus diisi',
@@ -16,7 +24,16 @@ const userSchema = Joi.object({
 const UserIndex = async (request, h) => {
   try {
     const userRepository = getConnection().getRepository(User);
-    const users = (await userRepository.find()).map((user) => {
+    const users = (
+      await userRepository.find({
+        where: {
+          deletedAt: IsNull(),
+        },
+        order: {
+          id: 'DESC',
+        },
+      })
+    ).map((user) => {
       const { id, ...userWithoutId } = user;
       return userWithoutId;
     });
@@ -26,12 +43,13 @@ const UserIndex = async (request, h) => {
     };
     return h.response(response).code(200);
   } catch (error) {
-    return h.response(error).code(500);
+    // return h.response(error).code(500);
+    return handleException(h, error);
   }
 };
 const userCreate = async (request, h) => {
   try {
-    console.log(request.payload);
+    const newProps = { ...request.payload };
     const { error } = userSchema.validate(request.payload, {
       abortEarly: false,
     });
@@ -39,8 +57,14 @@ const userCreate = async (request, h) => {
       console.log(error);
       return handleValidationFailure(request, h, error);
     }
+
+    const hashedPassword = await bcrypt.hash(
+      request.payload.password,
+      saltRounds
+    );
+    newProps.password = hashedPassword;
     const userRepository = getConnection().getRepository(User);
-    const newUser = userRepository.create(request.payload);
+    const newUser = userRepository.create(newProps);
     const savedUser = await userRepository.save(newUser);
     const response = {
       timespamp: Date.now(),
@@ -48,7 +72,7 @@ const userCreate = async (request, h) => {
     };
     return h.response(response).code(200);
   } catch (error) {
-    return h.response(error.details).code(500);
+    return handleException(h, error);
   }
 };
 const userFindById = async (request, h) => {
@@ -69,21 +93,21 @@ const userFindById = async (request, h) => {
     return h.response(response).code(404);
   } catch (error) {
     console.log(error);
-    return h.response(error).code(404);
+    return handleException(h, error);
   }
 };
 const userDelete = async (request, h) => {
   try {
-    const { id } = request.params;
+    const { uuid } = request.params;
     const userRepository = getConnection().getRepository(User);
-    const deletedUser = await userRepository.delete(id);
+    const deletedUser = await userRepository.softRemove({ uuid });
     const response = {
       timespamp: Date.now(),
       data: deletedUser,
     };
     return h.response(response).code(200);
   } catch (error) {
-    return h.response(error).code(404);
+    return handleException(h, error);
   }
 };
 const userUpdate = async (request, h) => {
@@ -102,7 +126,7 @@ const userUpdate = async (request, h) => {
     }
     return h.response('User tidak ditemukan').code(404);
   } catch (error) {
-    return h.response(error).code(404);
+    return handleException(h, error);
   }
 };
 module.exports = {

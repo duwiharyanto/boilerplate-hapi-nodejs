@@ -4,6 +4,7 @@ const { EntitySchema } = require('typeorm');
 
 module.exports = new EntitySchema({
   name: 'User',
+  tableName: 'users',
   columns: {
     id: {
       primary: true,
@@ -29,10 +30,16 @@ module.exports = new EntitySchema({
       default: () => 'CURRENT_TIMESTAMP',
       onUpdate: 'CURRENT_TIMESTAMP',
     },
+    password: {
+      type: 'text',
+    },
     uuid: {
       type: 'uuid',
       generated: 'uuid',
     },
+    deletedAt: {
+      type: 'timestamp',
+      nullable: true,
+    },
   },
-  tableName: 'users',
 });

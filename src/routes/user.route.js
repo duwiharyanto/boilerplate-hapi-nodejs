@@ -24,7 +24,7 @@ const userRoute = [
   },
   {
     method: 'DELETE',
-    path: '/user/{id}',
+    path: '/user/{uuid}',
     handler: userDelete,
   },
   {
