@@ -4,7 +4,7 @@ const userRoute = require('./src/routes/user.route');
 const { connect } = require('./src/config/db');
 
 const Server = Hapi.Server({
-  port: 3002,
+  port: process.env.PORT,
   host: 'localhost',
 });
 

@@ -6,6 +6,7 @@ const {
   handleValidationFailure,
   handleException,
 } = require('../utils/validation.response');
+require('dotenv').config();
 
 const saltRounds = 10;
 const userSchema = Joi.object({
@@ -43,7 +44,6 @@ const UserIndex = async (request, h) => {
     };
     return h.response(response).code(200);
   } catch (error) {
-    // return h.response(error).code(500);
     return handleException(h, error);
   }
 };
@@ -57,7 +57,6 @@ const userCreate = async (request, h) => {
       console.log(error);
       return handleValidationFailure(request, h, error);
     }
-
     const hashedPassword = await bcrypt.hash(
       request.payload.password,
       saltRounds
