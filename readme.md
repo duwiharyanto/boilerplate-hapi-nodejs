@@ -1,5 +1,5 @@
 
-# Project Title
+# Project
 
 Boilerplate sederhana Hapi framework
 
@@ -21,6 +21,7 @@ Boilerplate sederhana Hapi framework
 
 - Validasi
 - Orm
+- Softdelete
 
 
 ## Deployment
