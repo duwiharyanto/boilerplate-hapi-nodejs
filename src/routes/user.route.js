@@ -21,6 +21,15 @@ const userRoute = [
     method: 'POST',
     path: '/user',
     handler: userCreate,
+    options: {
+      payload: {
+        output: 'file',
+        parse: true,
+        allow: 'multipart/form-data',
+        maxBytes: 1024 * 1024 * 10, // Batasan ukuran file (10MB dalam contoh ini)
+        multipart: true,
+      },
+    },
   },
   {
     method: 'DELETE',

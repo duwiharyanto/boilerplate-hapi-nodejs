@@ -21,6 +21,9 @@ module.exports = new EntitySchema({
     email: {
       type: 'varchar',
     },
+    image: {
+      type: 'text',
+    },
     createdAt: {
       type: 'timestamp',
       default: () => 'CURRENT_TIMESTAMP',
@@ -40,6 +43,7 @@ module.exports = new EntitySchema({
     deletedAt: {
       type: 'timestamp',
       nullable: true,
+      // select: false,
     },
   },
 });

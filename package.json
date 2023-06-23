@@ -5,13 +5,15 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:dev": "nodemon app"
+    "start:dev": "nodemon app",
+    "eslint:start": "npx eslint ."
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@hapi/hapi": "^21.3.2",
+    "@hapi/inert": "^7.1.0",
     "bcrypt": "^5.1.0",
     "dotenv": "^16.3.1",
     "joi": "^17.9.2",

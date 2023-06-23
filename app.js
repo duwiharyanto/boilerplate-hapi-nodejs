@@ -1,4 +1,5 @@
 const Hapi = require('@hapi/hapi');
+const Inert = require('@hapi/inert');
 const routes = require('./src/routes/route');
 const userRoute = require('./src/routes/user.route');
 const { connect } = require('./src/config/db');
@@ -7,12 +8,12 @@ const Server = Hapi.Server({
   port: process.env.PORT,
   host: 'localhost',
 });
-
 Server.route(routes);
 Server.route(userRoute);
 
 const init = async () => {
   try {
+    await Server.register(Inert);
     await connect();
     await Server.start();
     console.log(`Server running at: ${Server.info.uri}`);

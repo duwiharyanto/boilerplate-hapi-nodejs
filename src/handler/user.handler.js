@@ -1,6 +1,8 @@
 const { getConnection, IsNull } = require('typeorm');
 const Joi = require('joi');
 const bcrypt = require('bcrypt');
+const path = require('path');
+const fs = require('fs');
 const User = require('../entitites/user.entity');
 const {
   handleValidationFailure,
@@ -16,6 +18,28 @@ const userSchema = Joi.object({
   password: Joi.string().required().messages({
     'any.required': 'Field password harus diisi',
   }),
+  image: Joi.any()
+    .required()
+    .custom((value, helpers) => {
+      if (!value) {
+        return helpers.error('any.required');
+      }
+      if (!value.filename) {
+        return helpers.error('any.invalid');
+      }
+
+      const allowedExtensions = ['jpeg', 'jpg'];
+      const fileExtension = value.filename.split('.').pop().toLowerCase();
+
+      if (!allowedExtensions.includes(fileExtension)) {
+        return helpers.error('any.invalid');
+      }
+      return value;
+    })
+    .messages({
+      'any.required': 'Field image harus diisi',
+      'any.invalid': 'Field image tidak sesuai format',
+    }),
   email: Joi.string().required().email().messages({
     'any.required': 'Field email harus diisi',
     'string.email': 'Field email harus berupa email',
@@ -54,14 +78,19 @@ const userCreate = async (request, h) => {
       abortEarly: false,
     });
     if (error) {
-      console.log(error);
       return handleValidationFailure(request, h, error);
     }
     const hashedPassword = await bcrypt.hash(
       request.payload.password,
       saltRounds
     );
+    const file = request.payload.image;
+    const filePath = path.join('./public/uploads', file.filename);
+    const fileData = fs.readFileSync(file.path);
+    fs.writeFileSync(filePath, fileData);
+    fs.unlinkSync(file.path);
     newProps.password = hashedPassword;
+    newProps.image = filePath;
     const userRepository = getConnection().getRepository(User);
     const newUser = userRepository.create(newProps);
     const savedUser = await userRepository.save(newUser);
@@ -98,8 +127,10 @@ const userFindById = async (request, h) => {
 const userDelete = async (request, h) => {
   try {
     const { uuid } = request.params;
+    // console.log(uuid);
     const userRepository = getConnection().getRepository(User);
-    const deletedUser = await userRepository.softRemove({ uuid });
+    // const deletedUser = await userRepository.softDelete({ uuid });
+    const deletedUser = await userRepository.delete({ uuid });
     const response = {
       timespamp: Date.now(),
       data: deletedUser,
